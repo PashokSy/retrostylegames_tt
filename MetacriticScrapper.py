@@ -1,4 +1,5 @@
 import time
+import re
 
 import requests
 from bs4 import BeautifulSoup
@@ -10,7 +11,7 @@ metacritic_url = 'https://www.metacritic.com/browse/games/genre/userscore/real-t
 user_agent = {'User-agent': 'Mozilla/5.0'}
 
 # data set for collected data
-metacritic_data = {'name': [], 'date': [], 'platform': [], 'score': []}
+metacritic_data = {'name': [], 'date': [], 'platform': [], 'score': [], 'reviewCount': []}
 
 
 # method to get data for BeautifulSoup
@@ -36,9 +37,11 @@ def add_data(url, endPage):
 
         # Parse web-page to find all release dates and platforms (in same cycle because in same 'td')
         for td in soup.find_all('td', {'class', 'details'}):
+            # Get game release date
             for date_span in td.find_all('span', {'class': ''}):
                 date = date_span.get_text().strip()
                 metacritic_data['date'].append(date)
+            # Get game platform
             for platform_span in td.find_all('span', {'class': 'data'}):
                 platform = platform_span.get_text().strip()
                 metacritic_data['platform'].append(platform)
@@ -48,6 +51,17 @@ def add_data(url, endPage):
             score = meta_score.get_text().strip()
             metacritic_data['score'].append(score)
 
+        # Move to game page to extract review count
+        for gamePage in soup.find_all('a', {'class': 'title'}):
+            new_url = 'https://www.metacritic.com' + gamePage['href']
+            new_page = requests.get(new_url, headers=user_agent)
+            new_soup = BeautifulSoup(new_page.text, 'html.parser')
+            for review_span in new_soup.find_all(name='a',
+                                                 attrs={'href': gamePage['href'] + '/user-reviews', 'class': ''},
+                                                 limit=1):
+                review_count = re.findall(r'\d+', review_span.get_text().strip())
+                metacritic_data['reviewCount'].append(review_count.pop())
+
         # wait some time to not get banned
         time.sleep(6)
         currentPage += 1  # transfer to next page
@@ -56,13 +70,14 @@ def add_data(url, endPage):
     print(f"{len(metacritic_data['name'])} names {metacritic_data['name']} \n"
           f"{len(metacritic_data['date'])} dates {metacritic_data['date']} \n"
           f"{len(metacritic_data['platform'])} platforms {metacritic_data['platform']} \n"
-          f"{len(metacritic_data['score'])} scores {metacritic_data['score']}")
+          f"{len(metacritic_data['score'])} scores {metacritic_data['score']} \n"
+          f"{len(metacritic_data['reviewCount'])} reviewCount {metacritic_data['reviewCount']}")
 
 
 def createDataFrame():
     game = pd.DataFrame.from_dict(metacritic_data, orient='index')
     games = game.transpose()
-    games.to_csv('games_list.csv', index=False, header=True)
+    games.to_csv('games_list.csv', index=False, header=True, mode='w')
 
 
 def main():
