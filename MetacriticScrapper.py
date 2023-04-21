@@ -1,87 +1,73 @@
 import time
 
-import pandas as pd
-import requests, csv, pandas
+import requests
 from bs4 import BeautifulSoup
-import lxml, html5lib
+import pandas as pd
+import csv
 
-data_dict = {'Name': [], 'Rating': [], 'ReleaseDate': []}
+# hardcode metacritic url with !NO page number
+metacritic_url = 'https://www.metacritic.com/browse/games/genre/userscore/real-time/all?view=condensed&page='
+user_agent = {'User-agent': 'Mozilla/5.0'}
 
-
-# function for navigation through metacritic search pages
-def webpage(pageNum, platform):
-    url = 'https://www.metacritic.com/browse/games/genre/userscore/real-time/' \
-          + str(platform) + '?view=condensed' + str(pageNum)
-    userAgent = {'User-agent': 'chromedriver'}
-    try:
-        response = requests.get(url, headers=userAgent)
-    except:
-        print('Some error with response in "webpage" function')
-    return response
+# data set for collected data
+metacritic_data = {'name': [], 'date': [], 'platform': [], 'score': []}
 
 
-def scrapper(num_loops, content):
-    tblnum = 0
-    while tblnum < num_loops:
-        table_rows = content[tblnum].find_all('tr')
-        for tr in table_rows:
-            td = tr.find_all('td')
-            if len(td) == 0:
-                break
-            for a in td[1].find_all('a', {"class": "title"}):
-                data_dict['Name'].append(a.find('h3').text)
-
-        for tr in table_rows:
-            td = tr.find_all('td')
-            if len(td) == 0:
-                break
-            for rating in td[1].find_all('div', {"class": "metascore_w"}):
-                data_dict['Rating'].append(rating.text)
-
-        for tr in table_rows:
-            td = tr.find_all('td')
-            if len(td) == 0:
-                break
-            for date in td[1].find_all('span', {"class": ""}):
-                data_dict['ReleaseDate'].append(date.text)
-
-        print(tblnum)
-
-    tblnum += 1
+# method to get data for BeautifulSoup
+def get_page_content(url):
+    page = requests.get(url, headers=user_agent)
+    return BeautifulSoup(page.text, 'html.parser')
 
 
-def numberPages(response):
-    soup = BeautifulSoup(response.text, 'html.parser')
-    pages = soup.find_all('li', {"class": "page last_page"})
-    pagesCleaned = pages[0].find('a', {"class": "page_num"})
-    return (pagesCleaned.text)
-
-
-def pages(platform):
+# method to add data in dataset from first to selected pages
+def add_data(url, endPage):
     currentPage = 0
-    while currentPage < 2:
-        url = url = 'https://www.metacritic.com/browse/games/genre/userscore/real-time/' \
-                    + str(platform) + '?view=condensed' + str(currentPage)
-        userAgent = {'User-agent': 'chromedriver'}
-        try:
-            response = requests.get(url, headers=userAgent)
-        except:
-            print('Some error with response in "pages" function')
-        soup = BeautifulSoup(response.text, 'html.parser')
-        content = soup.find_all('table')
-        num_loops = len(content)
-        scrapper(num_loops, content)
-        currentPage += 1
-        print(f'current page - {currentPage}')
-        print(data_dict.values())
+    while currentPage < endPage:
+        url = url + str(currentPage)
+
+        # Getting data for further parse
+        soup = get_page_content(metacritic_url)
+
+        # Parse web-page to find all game names
+        for a in soup.find_all('a', {'class': 'title'}):
+            for h3 in a.find_all('h3'):
+                name = h3.get_text().strip()
+                metacritic_data['name'].append(name)
+
+        # Parse web-page to find all release dates and platforms (in same cycle because in same 'td')
+        for td in soup.find_all('td', {'class', 'details'}):
+            for date_span in td.find_all('span', {'class': ''}):
+                date = date_span.get_text().strip()
+                metacritic_data['date'].append(date)
+            for platform_span in td.find_all('span', {'class': 'data'}):
+                platform = platform_span.get_text().strip()
+                metacritic_data['platform'].append(platform)
+
+        # Parse web-page to find all user scores
+        for meta_score in soup.find_all('div', {'class': 'metascore_w user large game positive'}):
+            score = meta_score.get_text().strip()
+            metacritic_data['score'].append(score)
+
+        # wait some time to not get banned
         time.sleep(6)
+        currentPage += 1  # transfer to next page
+
+    # console print some checks
+    print(f"{len(metacritic_data['name'])} names {metacritic_data['name']} \n"
+          f"{len(metacritic_data['date'])} dates {metacritic_data['date']} \n"
+          f"{len(metacritic_data['platform'])} platforms {metacritic_data['platform']} \n"
+          f"{len(metacritic_data['score'])} scores {metacritic_data['score']}")
+
+
+def createDataFrame():
+    game = pd.DataFrame.from_dict(metacritic_data, orient='index')
+    games = game.transpose()
+    games.to_csv('games_list.csv', index=False, header=True)
 
 
 def main():
-    platform = 'pc'
-    pages(platform)
-    xData = (pd.DataFrame.from_dict(data_dict))
-    xData.to_csv('mc.csv')
+    add_data(metacritic_url, 1)
+    createDataFrame()
 
 
 main()
