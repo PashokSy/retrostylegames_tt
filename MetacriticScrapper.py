@@ -77,6 +77,7 @@ def scrapDataFromMetacritic(endPage):
         # wait some time to not get banned
         time.sleep(6)
         currentPage += 1  # transfer to next page
+    return metacritic_data
 
 
 # Method to split style text
@@ -90,18 +91,3 @@ def createDataFrame():
     game = pd.DataFrame.from_dict(metacritic_data, orient='index')
     games = game.transpose()
     games.to_csv('games_list.csv', index=False, header=True, mode='w')
-
-
-# Method for call from main
-def initiateMetacriticDataScrap(endPage):
-    scrapDataFromMetacritic(endPage)
-    createDataFrame()
-
-    # some primitive checks
-    print(f"{len(metacritic_data['name'])} names {metacritic_data['name']} \n"
-          f"{len(metacritic_data['date'])} dates {metacritic_data['date']} \n"
-          f"{len(metacritic_data['platform'])} platforms {metacritic_data['platform']} \n"
-          f"{len(metacritic_data['score'])} scores {metacritic_data['score']} \n"
-          f"{len(metacritic_data['reviewCount'])} reviewCount {metacritic_data['reviewCount']} \n"
-          f"{len(metacritic_data['style'])} style {metacritic_data['style']} \n"
-          f"{len(metacritic_data['developer'])} developer {metacritic_data['developer']} \n")
