@@ -1,7 +1,7 @@
 import csv
-
 import pandas as pd
 
+#TODO create function to get top 3 games
 
 def writeDataSetInCSV(data_set):
     game = pd.DataFrame.from_dict(data_set, orient='index')
