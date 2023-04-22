@@ -51,45 +51,39 @@ def scrapDataFromMetacritic(endPage):
             score = meta_score.get_text().strip()
             metacritic_data['score'].append(score)
 
-        # Move to game page to extract review count
+        # Move to game page to extract review count, developer and style
         for gamePage in soup.find_all('a', {'class': 'title'}):
             new_url = 'https://www.metacritic.com' + gamePage['href']
             new_page = requests.get(new_url, headers=user_agent)
             new_soup = BeautifulSoup(new_page.text, 'html.parser')
+            # Find and scrap review count
             for review_span in new_soup.find_all(name='a',
                                                  attrs={'href': gamePage['href'] + '/user-reviews', 'class': ''},
                                                  limit=1):
                 review_count = re.findall(r'\d+', review_span.get_text().strip())
                 metacritic_data['reviewCount'].append(review_count.pop())
+            # Find and crap developer
             for developer_span in new_soup.find_all(name='a',
                                                     href=True,
                                                     attrs={'class': 'button'},
                                                     limit=1):
                 metacritic_data['developer'].append(developer_span.get_text().strip())
+            # Find and scrap style
+            parent = new_soup.findChildren('li', {'class': 'summary_detail product_genre'})
+            for child in parent:
+                text = hyphen_split(child.text)
+                metacritic_data['style'].append(text)
 
         # wait some time to not get banned
         time.sleep(6)
         currentPage += 1  # transfer to next page
 
 
-# TODO finish wiki scraper
-# Search wiki list of rts for styles of the games in list
-def getStyleFromWiki():
-    wickiList = 'https://en.wikipedia.org/wiki/List_of_real-time_strategy_video_games#List'
-    user_agent = {'User-agent': 'Mozilla/5.0'}
-    wikiPage = requests.get(wickiList, headers=user_agent)
-    wikiSoup = BeautifulSoup(wikiPage.text, 'html.parser')
+# Method to split style text
+def hyphen_split(a):
+    splitedTextList = a.split(',')
+    return splitedTextList[2].strip()
 
-    for name in metacritic_data['name']:
-        next_siblind = wikiSoup.find_next_sibling('a', {'title': str(name)})
-        print(next_siblind)
-
-        """for td in utopia.find_all_next('td'):
-            print('-----')
-            print(td.get_text().strip())
-            print('------')
-            metacritic_data['style'].append(td.get_text().strip())
-"""
 
 # Save result dictionary to csv file
 def createDataFrame():
