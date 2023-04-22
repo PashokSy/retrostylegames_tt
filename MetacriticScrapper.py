@@ -11,7 +11,7 @@ metacritic_url = 'https://www.metacritic.com/browse/games/genre/userscore/real-t
 user_agent = {'User-agent': 'Mozilla/5.0'}
 
 # data set for collected data
-metacritic_data = {'name': [], 'date': [], 'platform': [], 'score': [], 'reviewCount': []}
+metacritic_data = {'name': [], 'date': [], 'platform': [], 'score': [], 'reviewCount': [], 'style': [], 'developer': []}
 
 
 # method to get data for BeautifulSoup
@@ -21,10 +21,10 @@ def get_page_content(url):
 
 
 # method to add data in dataset from first to selected pages
-def add_data(url, endPage):
+def scrapDataFromMetacritic(endPage):
     currentPage = 0
     while currentPage < endPage:
-        url = url + str(currentPage)
+        url = metacritic_url + str(currentPage)
 
         # Getting data for further parse
         soup = get_page_content(metacritic_url)
@@ -61,28 +61,53 @@ def add_data(url, endPage):
                                                  limit=1):
                 review_count = re.findall(r'\d+', review_span.get_text().strip())
                 metacritic_data['reviewCount'].append(review_count.pop())
+            for developer_span in new_soup.find_all(name='a',
+                                                    href=True,
+                                                    attrs={'class': 'button'},
+                                                    limit=1):
+                metacritic_data['developer'].append(developer_span.get_text().strip())
 
         # wait some time to not get banned
         time.sleep(6)
         currentPage += 1  # transfer to next page
 
-    # console print some checks
-    print(f"{len(metacritic_data['name'])} names {metacritic_data['name']} \n"
-          f"{len(metacritic_data['date'])} dates {metacritic_data['date']} \n"
-          f"{len(metacritic_data['platform'])} platforms {metacritic_data['platform']} \n"
-          f"{len(metacritic_data['score'])} scores {metacritic_data['score']} \n"
-          f"{len(metacritic_data['reviewCount'])} reviewCount {metacritic_data['reviewCount']}")
 
+# TODO finish wiki scraper
+# Search wiki list of rts for styles of the games in list
+def getStyleFromWiki():
+    wickiList = 'https://en.wikipedia.org/wiki/List_of_real-time_strategy_video_games#List'
+    user_agent = {'User-agent': 'Mozilla/5.0'}
+    wikiPage = requests.get(wickiList, headers=user_agent)
+    wikiSoup = BeautifulSoup(wikiPage.text, 'html.parser')
 
+    for name in metacritic_data['name']:
+        next_siblind = wikiSoup.find_next_sibling('a', {'title': str(name)})
+        print(next_siblind)
+
+        """for td in utopia.find_all_next('td'):
+            print('-----')
+            print(td.get_text().strip())
+            print('------')
+            metacritic_data['style'].append(td.get_text().strip())
+"""
+
+# Save result dictionary to csv file
 def createDataFrame():
     game = pd.DataFrame.from_dict(metacritic_data, orient='index')
     games = game.transpose()
     games.to_csv('games_list.csv', index=False, header=True, mode='w')
 
 
-def main():
-    add_data(metacritic_url, 1)
+# Method for call from main
+def initiateMetacriticDataScrap(endPage):
+    scrapDataFromMetacritic(endPage)
     createDataFrame()
 
-
-main()
+    # some primitive checks
+    print(f"{len(metacritic_data['name'])} names {metacritic_data['name']} \n"
+          f"{len(metacritic_data['date'])} dates {metacritic_data['date']} \n"
+          f"{len(metacritic_data['platform'])} platforms {metacritic_data['platform']} \n"
+          f"{len(metacritic_data['score'])} scores {metacritic_data['score']} \n"
+          f"{len(metacritic_data['reviewCount'])} reviewCount {metacritic_data['reviewCount']} \n"
+          f"{len(metacritic_data['style'])} style {metacritic_data['style']} \n"
+          f"{len(metacritic_data['developer'])} developer {metacritic_data['developer']} \n")
