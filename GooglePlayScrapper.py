@@ -55,26 +55,18 @@ def scrapDataFromGooglePlay():
         # scrap data from game page url for developer
         for gameDeveloper in game_soup.find_all('div', {'class', 'Vbfug auoIOc'}):
             google_play_data['developer'].append(gameDeveloper.get_text().strip())
+        # get update date
+        for gameDate in game_soup.find_all('div', {'class': 'xg1aie'}):
+            google_play_data['date'].append(gameDate.get_text().strip())
         # all games in list are mobile and realistic
         google_play_data['platform'].append('Mobile')
         google_play_data['style'].append('Realism')
 
-    # some primitive checks
-    print(f"{len(google_play_data['name'])} names {google_play_data['name']} \n"
-          f"{len(google_play_data['date'])} dates {google_play_data['date']} \n"
-          f"{len(google_play_data['platform'])} platforms {google_play_data['platform']} \n"
-          f"{len(google_play_data['score'])} scores {google_play_data['score']} \n"
-          f"{len(google_play_data['reviewCount'])} reviewCount {google_play_data['reviewCount']} \n"
-          f"{len(google_play_data['style'])} style {google_play_data['style']} \n"
-          f"{len(google_play_data['developer'])} developer {google_play_data['developer']} \n")
+    return google_play_data
 
-scrapDataFromGooglePlay()
 
 
 def createDataFrame():
     game = pd.DataFrame.from_dict(google_play_data, orient='index')
     games = game.transpose()
     games.to_csv('games_list.csv', index=False, header=True, mode='w')
-
-
-createDataFrame()

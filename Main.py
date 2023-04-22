@@ -11,7 +11,6 @@ def Main():
     google_data = googlePlayScrapper.scrapDataFromGooglePlay()
     # TODO merge dictionaries
     # games_data = metacritic_data | google_data
-    # TODO check write and read functions
     # TODO create csv file reserve copy of correct data
     dataTools.writeDataSetInCSV(metacritic_data)
     dataTools.writeDataSetInCSV(google_data)
