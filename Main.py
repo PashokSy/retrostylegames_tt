@@ -21,6 +21,6 @@ def Main():
     metacritic_list = dataTools.readDataSetFromCSV('metacritic_data.csv')
     google_list = dataTools.readDataSetFromCSV('google_data.csv')
     result_list = dataTools.concatTwoDict(metacritic_list, google_list)
-    # dataTools.writeDataSetInCSV(result_list, 'games_list.csv')
+    dataTools.writeDataSetInCSV(result_list, 'games_list.csv')
 
 Main()
