@@ -4,14 +4,14 @@ import re
 import requests
 from bs4 import BeautifulSoup
 import pandas as pd
-import csv
 
 # hardcode metacritic url with !NO page number
 metacritic_url = 'https://www.metacritic.com/browse/games/genre/userscore/real-time/all?view=condensed&page='
 user_agent = {'User-agent': 'Mozilla/5.0'}
 
 # data set for collected data
-metacritic_data = {'name': [], 'date': [], 'platform': [], 'score': [], 'reviewCount': [], 'style': [], 'developer': []}
+metacritic_data = {'name': [], 'date': [], 'platform': [], 'score': [], 'reviewCount': [],
+                   'style': [], 'developer': [], 'downloads': []}
 
 
 # method to get data for BeautifulSoup
@@ -22,12 +22,12 @@ def get_page_content(url):
 
 # method to add data in dataset from first to selected pages
 def scrapDataFromMetacritic(endPage):
-    currentPage = 0
-    while currentPage < endPage:
-        url = metacritic_url + str(currentPage)
+    current_page = 0
+    while current_page < endPage:
+        url = metacritic_url + str(current_page)
 
         # Getting data for further parse
-        soup = get_page_content(metacritic_url)
+        soup = get_page_content(url)
 
         # Parse web-page to find all game names
         for a in soup.find_all('a', {'class': 'title'}):
@@ -76,14 +76,14 @@ def scrapDataFromMetacritic(endPage):
 
         # wait some time to not get banned
         time.sleep(6)
-        currentPage += 1  # transfer to next page
+        current_page += 1  # transfer to next page
     return metacritic_data
 
 
 # Method to split style text
 def hyphen_split(a):
-    splitedTextList = a.split(',')
-    return splitedTextList[2].strip()
+    split_text_list = a.split(',')
+    return split_text_list[2].strip()
 
 
 # Save result dictionary to csv file

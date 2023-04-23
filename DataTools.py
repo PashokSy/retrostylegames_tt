@@ -2,18 +2,16 @@ import csv
 import pandas as pd
 
 
-# TODO create function to get top 3 games
-
-def writeDataSetInCSV(data_set):
+def writeDataSetInCSV(data_set, file_name):
     game = pd.DataFrame.from_dict(data_set, orient='index')
     games = game.transpose()
-    games.to_csv('games_list.csv', index=False, header=True, mode='w')
+    games.to_csv(str(file_name), index=False, header=True, mode='w+')
 
 
-def readDataSetInCSV():
-    data_set = {'name': [], 'date': [], 'platform': [], 'score': [], 'reviewCount': [], 'style': [], 'developer': []}
-    filename = 'games_list.csv'
-    with open(filename, 'r') as data:
+def readDataSetInCSV(file_name):
+    data_set = {'name': [], 'date': [], 'platform': [], 'score': [], 'reviewCount': [],
+                'style': [], 'developer': [], 'downloads': []}
+    with open(str(file_name), 'r') as data:
         for line in csv.reader(data):
             if line[0] == 'name':
                 continue
@@ -24,4 +22,5 @@ def readDataSetInCSV():
             data_set['reviewCount'].append(line[4])
             data_set['style'].append(line[5])
             data_set['developer'].append(line[6])
+            data_set['downloads'].append(line[7])
     return data_set

@@ -2,28 +2,17 @@ import MetacriticScrapper as metacriticScrapper
 import GooglePlayScrapper as googlePlayScrapper
 import DataTools as dataTools
 
-# data set for collecting data
-games_data = {'name': [], 'date': [], 'platform': [], 'score': [], 'reviewCount': [], 'style': [], 'developer': []}
-
-
+game_list = {'name': [], 'date': [], 'platform': [], 'score': [], 'reviewCount': [],
+                'style': [], 'developer': [], 'downloads': []}
 def Main():
-    metacritic_data = metacriticScrapper.scrapDataFromMetacritic(1)
-    google_data = googlePlayScrapper.scrapDataFromGooglePlay()
-    # TODO merge dictionaries
-    # games_data = metacritic_data | google_data
-    # TODO create csv file reserve copy of correct data
-    dataTools.writeDataSetInCSV(metacritic_data)
-    dataTools.writeDataSetInCSV(google_data)
-    games_data = dataTools.readDataSetInCSV()
+    # metacritic_data = metacriticScrapper.scrapDataFromMetacritic(2)
+    # google_data = googlePlayScrapper.scrapDataFromGooglePlay()
+    # dataTools.writeDataSetInCSV(metacritic_data, 'metacritic_data.csv')
+    # dataTools.writeDataSetInCSV(google_data, 'google_data.csv')
 
-    # some primitive checks
-    print(f"{len(games_data['name'])} names {games_data['name']} \n"
-          f"{len(games_data['date'])} dates {games_data['date']} \n"
-          f"{len(games_data['platform'])} platforms {games_data['platform']} \n"
-          f"{len(games_data['score'])} scores {games_data['score']} \n"
-          f"{len(games_data['reviewCount'])} reviewCount {games_data['reviewCount']} \n"
-          f"{len(games_data['style'])} style {games_data['style']} \n"
-          f"{len(games_data['developer'])} developer {games_data['developer']} \n")
+    game_list = dataTools.readDataSetInCSV('google_data.csv')
+
+    print(game_list.values())
 
 
 Main()
