@@ -5,7 +5,7 @@ from bs4 import BeautifulSoup
 import pandas as pd
 
 # google appstore url
-appstore_url = 'https://play.google.com/store/search?q=real-time%20strategy%20realism&c=apps&hl=en&gl=US'
+appstore_url = 'https://play.google.com/store/search?q=real-time%20strategy%20realism&c=apps'
 user_agent = {'User-agent': 'Mozilla/5.0'}
 
 # data set for collecting data
