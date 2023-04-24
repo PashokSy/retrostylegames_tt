@@ -28,15 +28,12 @@ def readDataSetFromCSV(file_name):
     return data_set
 
 
-def writeTop150InCSV(file_name):
+def writeTopInCSV(file_name):
     data_set = {'name': [], 'date': [], 'platform': [], 'score': [], 'reviewCount': [],
                 'style': [], 'developer': [], 'downloads': [], 'coefficient': []}
     with open(str(file_name), 'r', encoding='utf-8', errors='ignore') as data:
         for line in csv.reader(data):
-            if line[0] == 'name':
-                continue
-            # delete all Fantasy games
-            if line[5] == 'Fantasy':
+            if line[0] == 'name' or line[5] == 'Fantasy' or line[3] == '' or line[4] == '':
                 continue
             data_set['name'].append(line[0])
             data_set['date'].append(line[1])
@@ -46,12 +43,8 @@ def writeTop150InCSV(file_name):
             data_set['style'].append(line[5])
             data_set['developer'].append(line[6])
             data_set['downloads'].append(line[7])
-
-            # calculate value of score
-            try:
-                data_set['coefficient'].append(float(line[4]) / float(line[3]))
-            except:
-                data_set['coefficient'].append(0.0)
+            coefficient = float(line[3])*float(line[4])
+            data_set['coefficient'].append(coefficient)
 
         # sort data
         csvData = pd.DataFrame.from_dict(data_set, orient='index')
@@ -63,7 +56,7 @@ def writeTop150InCSV(file_name):
         result_filename = 'top ' + file_name
         csvData.to_csv(str(result_filename), index=False, header=True, mode='w+')
         csvData = pd.read_csv(result_filename, nrows=150)
-        csvData.to_csv('top 150 ' + file_name, index=False, header=True, mode='w+')
+        csvData.to_csv('top_' + file_name, index=False, header=True, mode='w+')
 
 
 def concatTwoDict(dict1, dict2):
